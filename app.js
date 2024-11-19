@@ -1,53 +1,22 @@
-// // Import Express
-// const express = require('express');
-
-// // Initialize the app
-// const app = express();
-
-// // Define a port
-// const PORT = 3000;
-
-// // Define a basic route
-// app.get('/', (req, res) => {
-//     res.send('Hello, Express!');
-// });
-
-// // Start the server
-// app.listen(PORT, () => {
-//     console.log(`Server is running at http://localhost:${PORT}`);
-// });
-
-
-
-
-require('dotenv').config()
 const express = require('express');
-const bodyParser = require('body-parser');
-const bcrypt = require("bcrypt");
-const conDB = require('./config/db');
-const jwt = require("jsonwebtoken");
-const userModel = require('./userModel');
-
+const mongoose = require('mongoose');
+const footballerRoutes = require('./route/footballerRoutes');
+require('dotenv').config();  
 
 const app = express();
-const port = process.env.PORT || 5000;
+app.use(express.json());  
 
-// Parse incoming requests with JSON payloads
-app.use(bodyParser.json());
-
-// Coonect to the database
-conDB();
-
-
-// router handlers 
-app.get('/home', (req, res) => {
-  res.status(200).json('You are welcome');
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 })
+  .then(() => console.log('Connected to MongoDB CMS_football'))
+  .catch((err) => console.log('MongoDB connection error:', err));
 
-// Define a route that registers users to the database
 
+app.use('/api',footballerRoutes);
 
 // Start the server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}/`);
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
 });
