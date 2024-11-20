@@ -1,6 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const footballerRoutes = require('./route/footballerRoutes');
+const userRoutes = require('./route/userRoutes');
+const dotenv = require('dotenv');
+
 require('dotenv').config();  
 
 const app = express();
@@ -16,6 +19,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
 
 app.use('/api',footballerRoutes);
+app.use('/api/users', userRoutes);
 
 // Start the server
 app.listen(PORT, () => {
