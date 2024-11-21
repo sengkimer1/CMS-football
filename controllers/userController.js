@@ -5,7 +5,7 @@ const User = require('../Model/user');
 
 // User registration controller
 const registerUser = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { firstname, lastname, email, password } = req.body;
 
   try {
     // Check if user already exists
@@ -19,7 +19,8 @@ const registerUser = async (req, res) => {
 
     // Create a new user
     const newUser = new User({
-      username,
+      firstname,
+      lastname,
       email,
       password: hashedPassword,
     });
