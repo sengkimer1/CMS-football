@@ -1,0 +1,54 @@
+const Match = require("../Model/match");
+
+exports.createMatch = async (req, res) => {
+    try {
+    const { home_team, away_team, match_date, location, referee } = req.body;
+    const newMatch = new Match({
+        home_team,
+        away_team,
+        match_date: new Date(match_date),
+        location: location || "To be determined",
+        referee: referee || "Not assigned", 
+    });
+    const savedMatch = await newMatch.save();
+        return res.status(201).json({
+            message: "Match created successfully!",
+            match: savedMatch,
+        });
+    } catch (error) {
+        console.error("Error creating match:", error);
+        return res.status(500).json({
+            message: "An error occurred while creating the match.",
+            error: error.message,
+        });
+    }
+};
+
+exports.getAllMatch = async (req,res)=>{
+    try{
+        
+        const getMatch = await Match.find();
+        return res.status(200).json({message: "get all match successfully", getMatch});
+    }  catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "Internal server error ",
+            error: error.message,
+        });
+    }
+}
+
+exports.getAllMatch = async (req,res)=>{
+    try{
+        const id = req.params.id;
+        const getMatch = await Match.findById(id);
+        return res.status(200).json({message: "get id match successfully", getMatch});
+    }  catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "Internal server error ",
+            error: error.message,
+        });
+    }
+}
+
