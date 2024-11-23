@@ -38,7 +38,7 @@ exports.getAllMatch = async (req,res)=>{
     }
 }
 
-exports.getAllMatch = async (req,res)=>{
+exports.getMatchID = async (req,res)=>{
     try{
         const id = req.params.id;
         const getMatch = await Match.findById(id);
@@ -51,4 +51,41 @@ exports.getAllMatch = async (req,res)=>{
         });
     }
 }
+
+exports.updateMatch = async (req, res) => {
+    try {
+        const id= req.params.id;
+        const update = req.body; 
+        // Find the match by ID and update it
+        const updatedMatch = await Match.findByIdAndUpdate(
+            id, 
+            update, {new: true, runValidators: true}
+        );
+        return res.status(200).json({message:'update successfully',updatedMatch})
+
+    } catch (error) {
+        console.error("Error updating match:", error);
+        return res.status(500).json({
+            message: "An error occurred while updating the match.",
+            error: error.message,
+        });
+    }
+};
+
+
+exports.deleteMatch = async (req, res) => {
+    try {
+        const id= req.params.id; 
+        // Find the match by ID and update it
+        const deleteMatch = await Match.findByIdAndDelete(id);
+        return res.status(200).json({message:'delete successfully',deleteMatch})
+
+    } catch (error) {
+        console.error("Error delete match:", error);
+        return res.status(500).json({
+            message: "An error occurred while delete the match.",
+            error: error.message,
+        });
+    }
+};
 

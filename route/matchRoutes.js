@@ -2,12 +2,18 @@ const express = require('express');
 const {
     createMatch,
     getAllMatch,
-} = require('../controllers/matchController');
+    getMatchID,
+    updateMatch,
+    deleteMatch,
 
+} = require('../controllers/matchController');
 const matchRouter = express.Router();
 
 matchRouter.post('/match', createMatch);
-matchRouter.get('/matchs/:id',getAllMatch)
+matchRouter.get('/matchs',getAllMatch)
+matchRouter.get('/matchs/:id',getMatchID)
+matchRouter.put('/matchs/:id',updateMatch)
+matchRouter.delete('/matchs/:id',deleteMatch)
 
 // Route for getting all matches
 // matchRouter.get('/matches', getAllMatches);
