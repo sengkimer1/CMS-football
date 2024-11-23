@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 // Define the footballer schema
 const footballerSchema = new mongoose.Schema({
-  id: { type: Number, required: true },
+  id: { type: Number, required: true,unique:true },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   position: { type: String, required: true },
@@ -12,7 +12,7 @@ const footballerSchema = new mongoose.Schema({
   dateOfBirth: { type: Date, required: true },
   height: { type: Number, required: true },
   weight: { type: Number, required: true },
-  imageUrl: { type: String, required: false } // Optional field
+  imageUrl: { type: String, required: false } 
 });
 
 // Create and export the model
