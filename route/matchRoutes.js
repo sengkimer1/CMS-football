@@ -8,12 +8,14 @@ const {
 
 } = require('../controllers/matchController');
 const matchRouter = express.Router();
+const authMiddleware = require('../Modelware/authmodelware');
+const roleMiddleware = require('../Modelware/roleMiddleware');
 
-matchRouter.post('/match', createMatch);
+matchRouter.post('/match',authMiddleware,roleMiddleware('admin'), createMatch);
 matchRouter.get('/matchs',getAllMatch)
 matchRouter.get('/matchs/:id',getMatchID)
-matchRouter.put('/matchs/:id',updateMatch)
-matchRouter.delete('/matchs/:id',deleteMatch)
+matchRouter.put('/matchs/:id',authMiddleware,roleMiddleware('admin'),updateMatch)
+matchRouter.delete('/matchs/:id',authMiddleware,roleMiddleware('admin'),deleteMatch)
 
 // Route for getting all matches
 // matchRouter.get('/matches', getAllMatches);
