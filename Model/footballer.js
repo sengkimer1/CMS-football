@@ -13,7 +13,8 @@ const footballerSchema = new mongoose.Schema({
   height: { type: Number, required: true },
   weight: { type: Number, required: true },
   imageUrl: { type: String, required: false } 
+} , { 
+  timestamps: true,
 });
-
 // Create and export the model
 module.exports = mongoose.model('Footballer', footballerSchema);
