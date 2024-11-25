@@ -1,12 +1,19 @@
+const { request } = require("express");
 const mongoose = require("mongoose");
 
 const matchSchema = new mongoose.Schema(
+
     {
-        home_team: {
+        id:{
+            type:Number,
+            request:[true],
+            unique:[true]
+        },
+        team_A: {
             type: String,
             required: [true]
         },
-        away_team: {
+        team_B: {
             type: String,
             required: [true]
         },
@@ -22,12 +29,12 @@ const matchSchema = new mongoose.Schema(
             type: String,
             default: "Not assigned",
         },
-        home_score: {
+        score_A: {
             type: Number,
             default: 0,
             min: [0, "Score cannot be negative"],
         },
-        away_score: {
+        score_B: {
             type: Number,
             default: 0,
             min: [0, "Score cannot be negative"],

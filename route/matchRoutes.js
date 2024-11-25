@@ -14,6 +14,7 @@ const roleMiddleware = require('../Modelware/roleMiddleware');
 matchRouter.post('/match',authMiddleware,roleMiddleware('admin'), createMatch);
 matchRouter.get('/matchs',getAllMatch)
 matchRouter.get('/matchs/:id',getMatchID)
+
 matchRouter.put('/matchs/:id',authMiddleware,roleMiddleware('admin'),updateMatch)
 matchRouter.delete('/matchs/:id',authMiddleware,roleMiddleware('admin'),deleteMatch)
 
@@ -28,5 +29,9 @@ matchRouter.delete('/matchs/:id',authMiddleware,roleMiddleware('admin'),deleteMa
 
 // Route for canceling a match
 // matchRouter.put('/match/:id/cancel', cancelMatch);
+
+
+matchRouter.put('/matchs/:id',updateMatch)
+matchRouter.delete('/matchs/:id',deleteMatch)
 
 module.exports = matchRouter;

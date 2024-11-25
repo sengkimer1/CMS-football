@@ -1,11 +1,10 @@
 const Match = require("../Model/match");
-
 exports.createMatch = async (req, res) => {
     try {
-    const { home_team, away_team, match_date, location, referee } = req.body;
+    const { team_A, team_B, match_date, location, referee } = req.body;
     const newMatch = new Match({
-        home_team,
-        away_team,
+        team_A,
+        team_B,
         match_date: new Date(match_date),
         location: location || "To be determined",
         referee: referee || "Not assigned", 
@@ -72,10 +71,9 @@ exports.updateMatch = async (req, res) => {
     }
 };
 
-
 exports.deleteMatch = async (req, res) => {
     try {
-        const id= req.params.id; 
+        const id = req.params.id; 
         // Find the match by ID and update it
         const deleteMatch = await Match.findByIdAndDelete(id);
         return res.status(200).json({message:'delete successfully',deleteMatch})
