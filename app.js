@@ -27,7 +27,7 @@ mongoose.connect(process.env.MONGO_URI, {
   });
 
 // API Routes
-app.use('/api/footballers', footballerRoutes); 
+app.use('/api', footballerRoutes); 
 app.use('/api/users', userRoutes); 
 app.use('/api', matchRoutes); 
 
