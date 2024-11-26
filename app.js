@@ -2,7 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const footballerRoutes = require('./route/footballerRoutes');
 const userRoutes = require('./route/userRoutes');
+
+const ticketRoutes = require('./route/ticketRoutes');  // Import ticketRoutes
+
+
 const matchRoutes = require('./route/matchRoutes');
+
 const dotenv = require('dotenv');
 
 // Load environment variables
@@ -26,10 +31,16 @@ mongoose.connect(process.env.MONGO_URI, {
     process.exit(1); 
   });
 
+
+app.use('/api',footballerRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/tickets', ticketRoutes);  // Ticket routes
+
 // API Routes
 app.use('/api', footballerRoutes); 
 app.use('/api/users', userRoutes); 
 app.use('/api', matchRoutes); 
+
 
 // Start the Server
 app.listen(PORT, () => {
