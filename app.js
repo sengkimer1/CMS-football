@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const footballerRoutes = require('./route/footballerRoutes');
 const userRoutes = require('./route/userRoutes');
+const ticketRoutes = require('./route/ticketRoutes');  // Import ticketRoutes
+
 const dotenv = require('dotenv');
 
 require('dotenv').config();  
@@ -20,6 +22,9 @@ mongoose.connect(process.env.MONGO_URI, {
 
 app.use('/api',footballerRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/tickets', ticketRoutes);  // Ticket routes
+
+
 
 // Start the server
 app.listen(PORT, () => {
