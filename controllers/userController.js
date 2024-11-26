@@ -21,16 +21,22 @@ const registerUser = async (req, res) => {
         if (!firstname || !lastname || !email || !password) {
             return res.status(400).json({ message: 'All fields are required' });
         }
-
+        // Validate password length
+        if (password.length < 8) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+        }
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Invalid email format' });
+        }
         // Check if the user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
-
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
-
         // Create and save a new user
         const newUser = new User({
             firstname,
@@ -45,13 +51,13 @@ const registerUser = async (req, res) => {
         const token = jwt.sign({ id: newUser._id }, JWT_SECRET, { expiresIn: '1h' });
 
         // Return success response
-        res.status(201).json({
-            message: 'User registered successfully',
+        return res.status(201).json({
+            message: 'User registered successfully.',
             token,
         });
     } catch (error) {
         console.error('Error in registerUser:', error.message);
-        res.status(500).json({ message: 'Internal server error' });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };
 
@@ -62,7 +68,7 @@ const loginUser = async (req, res) => {
     try {
         // Validate input fields
         if (!email || !password) {
-            return res.status(400).json({ message: 'Email and password are required' });
+            return res.status(400).json({ message: 'Email and password are required.' });
         }
 
         // Find the user by email
@@ -74,7 +80,7 @@ const loginUser = async (req, res) => {
         // Check if the password is valid
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Invalid password' });
+            return res.status(401).json({ message: 'Invalid email or password.' });
         }
 
         // Generate JWT token
@@ -86,7 +92,7 @@ const loginUser = async (req, res) => {
 
         // Return success response
         res.json({
-            message: 'Logged in successfully',
+            message: 'User registered successfully.',
             token,
             userId: user._id,
             role: user.role,
