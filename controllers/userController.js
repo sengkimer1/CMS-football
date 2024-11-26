@@ -13,6 +13,7 @@ if (!JWT_SECRET) {
 console.log('JWT_SECRET loaded successfully');
 
 // User registration controller
+
 const registerUser = async (req, res) => {
     const { firstname, lastname, email, password } = req.body;
 
