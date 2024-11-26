@@ -14,4 +14,4 @@ router.put('/ticket/update/:id', authMiddleware, roleMiddleware('admin'), update
 router.delete('/ticket/delete/:id', authMiddleware, roleMiddleware('admin'),deleteTicketById);
 
 
-module.exports = router;
+module.exports = router; 
