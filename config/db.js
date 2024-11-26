@@ -14,6 +14,6 @@ const conDB = async() => {
   } catch (error) {
     console.log(`Error: ${error.message}`);
   }
-}
+}// Controller method to create a new match
 
 module.exports = conDB;

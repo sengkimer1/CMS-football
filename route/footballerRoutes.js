@@ -7,18 +7,14 @@ const {
   updateFootballer, 
   deleteFootballer 
 } = require('../controllers/footballerController');
-
-// Middleware to authenticate user
-const authenticateUser = (req, res, next) => {
-  req.user = { id: 123, role: 'ADMIN' }; // Example user data
-  next();
-};
+const authMiddleware = require('../Modelware/authmodelware');
+const roleMiddleware = require('../Modelware/roleMiddleware');
 
 // Routes
-router.get('/footballers', authenticateUser, getAllFootballers);
-router.get('/footballers/:id', authenticateUser, getFootballerById);
-router.post('/footballers', authenticateUser, addFootballer);
-router.put('/footballers/:id', authenticateUser, updateFootballer);
-router.delete('/footballers/:id', authenticateUser, deleteFootballer);
+router.get('/footballers', authMiddleware, getAllFootballers);
+router.get('/footballers/:id', authMiddleware, getFootballerById);
+router.post('/footballers', authMiddleware, roleMiddleware('admin'), addFootballer);
+router.put('/footballers/:id', authMiddleware, roleMiddleware('admin'), updateFootballer);
+router.delete('/footballers/:id', authMiddleware, roleMiddleware('admin'), deleteFootballer);
 
 module.exports = router;

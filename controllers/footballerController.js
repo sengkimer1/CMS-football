@@ -2,70 +2,32 @@ const Footballer = require('../Model/footballer');
 
 // Get all footballers
 exports.getAllFootballers = async (req, res) => {
-  const { role } = req.user;
-
   try {
     const footballers = await Footballer.find();
-
     if (!footballers || footballers.length === 0) {
       return res.status(404).json({ error: 'No footballers found' });
     }
-
-    if (role === 'USER') {
-      const limitedData = footballers.map(({ id, firstName, lastName, position, club, country, imageUrl }) => ({
-        id,
-        firstName,
-        lastName,
-        position,
-        club,
-        country,
-        imageUrl
-      }));
-      return res.json(limitedData);
-    }
-
-    if (role === 'ADMIN') {
-      return res.json(footballers);
-    }
-
-    return res.status(403).json({ error: 'Unauthorized access' });
+    res.status(200).json(footballers);
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching footballers:', err);
     res.status(500).json({ error: 'Server error' });
   }
 };
 
 // Get footballer by ID
 exports.getFootballerById = async (req, res) => {
-  const { id } = req.params;
-  const { role } = req.user;
-
   try {
-    const footballer = await Footballer.findOne({ id: Number(id) });
-
+    const { id } = req.params;
+    const footballer = await Footballer.findById(id);
     if (!footballer) {
       return res.status(404).json({ error: 'Footballer not found' });
     }
-
-    if (role === 'USER') {
-      return res.json({
-        id: footballer.id,
-        firstName: footballer.firstName,
-        lastName: footballer.lastName,
-        position: footballer.position,
-        club: footballer.club,
-        country: footballer.country,
-        imageUrl: footballer.imageUrl
-      });
-    }
-
-    if (role === 'ADMIN') {
-      return res.json(footballer);
-    }
-
-    return res.status(403).json({ error: 'Unauthorized access' });
+    res.status(200).json(footballer);
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching footballer by ID:', err);
+    if (err instanceof mongoose.Error.CastError) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -73,10 +35,21 @@ exports.getFootballerById = async (req, res) => {
 // Add a footballer
 exports.addFootballer = async (req, res) => {
   try {
-    const { id, firstName, lastName, position, club, country, dateOfBirth, height, weight, imageUrl } = req.body;
-
+    const {
+      id,
+      firstName,
+      lastName,
+      position,
+      club,
+      country,
+      dateOfBirth,
+      height,
+      weight,
+      imageUrl,
+    } = req.body;
+    // Validate required fields
     if (!id || !firstName || !lastName || !position || !club || !country || !dateOfBirth || !height || !weight) {
-      return res.status(400).json({ message: 'All fields are required!' });
+      return res.status(400).json({ error: 'All fields are required' });
     }
 
     const newFootballer = new Footballer({
@@ -89,64 +62,49 @@ exports.addFootballer = async (req, res) => {
       dateOfBirth,
       height,
       weight,
-      imageUrl
+      imageUrl,
     });
-
     await newFootballer.save();
     res.status(201).json({ message: 'Footballer added successfully', data: newFootballer });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Failed to add footballer', error: err.message });
+    console.error('Error adding footballer:', err);
+    res.status(500).json({ error: 'Failed to add footballer', details: err.message });
   }
 };
-
 // Update a footballer
 exports.updateFootballer = async (req, res) => {
-  const { id } = req.params;
-  const { role } = req.user;
-  const updatedData = req.body;
-
-  if (role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Unauthorized access' });
-  }
-
   try {
+    const { id } = req.params;
+    const updatedData = req.body;
     const footballer = await Footballer.findOneAndUpdate(
       { id: Number(id) },
       updatedData,
       { new: true, runValidators: true }
     );
-
     if (!footballer) {
       return res.status(404).json({ error: 'Footballer not found' });
     }
-
-    return res.json(footballer);
+    res.status(200).json({ message: 'Footballer updated successfully', data: footballer });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error updating footballer:', err);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 };
 
 // Delete a footballer
 exports.deleteFootballer = async (req, res) => {
-  const { id } = req.params;
-  const { role } = req.user;
-
-  if (role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Unauthorized access' });
-  }
-
   try {
+    const { id } = req.params;
+
     const footballer = await Footballer.findOneAndDelete({ id: Number(id) });
 
     if (!footballer) {
       return res.status(404).json({ error: 'Footballer not found' });
     }
 
-    return res.json({ message: 'Footballer deleted successfully' });
+    res.status(200).json({ message: 'Footballer deleted successfully' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error deleting footballer:', err);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 };
