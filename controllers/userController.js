@@ -147,11 +147,40 @@ const getAllUsers = async (req, res) => {
       res.status(500).json({ message: 'Internal server error' });
     }
   };
-  
+  const updateUser = async (req, res) => {
+    const userId = req.params.id;  // Get the user ID from the URL parameter
+    const { firstname, lastname } = req.body; // Get updated data from the request body
+
+    try {
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update the fields if provided
+        if (firstname) user.firstname = firstname;
+        if (lastname) user.lastname = lastname;
+
+        // Save the updated user
+        await user.save();
+
+        // Send a success response
+        res.status(200).json({
+            message: 'User updated successfully',
+            user: user
+        });
+    } catch (error) {
+        console.error('Error updating user:', error.message);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 
 module.exports = {
     registerUser,
     loginUser,
     getAllUsers,
-    getUserById
+    getUserById,
+    updateUser
 };
