@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../Model/user');
 const JWT_SECRET = process.env.JWT_SECRET;
 
+
 if (!JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined');
 }
@@ -175,6 +176,20 @@ const getAllUsers = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+const deleteUser = async (req, res) => {
+    console.log("DELETE request received for user:", req.params.id); // Add this log
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "User deleted successfully" });
+    } catch (err) {
+        console.error("Error in deleteUser:", err); // Add this log
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 
 
 module.exports = {
@@ -182,5 +197,6 @@ module.exports = {
     loginUser,
     getAllUsers,
     getUserById,
-    updateUser
+    updateUser,
+    deleteUser
 };

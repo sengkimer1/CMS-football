@@ -7,8 +7,8 @@ const {
   updateFootballer, 
   deleteFootballer 
 } = require('../controllers/footballerController');
-const authMiddleware = require('../Modelware/authmodelware');
-const roleMiddleware = require('../Modelware/roleMiddleware');
+const authMiddleware = require('../Modelware/authmodelware')
+const roleMiddleware = require('../Modelware/roleMiddleware')
 
 // Routes
 router.get('/footballers', authMiddleware, getAllFootballers);
