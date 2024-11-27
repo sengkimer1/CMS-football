@@ -22,7 +22,6 @@ exports.createMatch = async (req, res) => {
         });
     }
 };
-
 exports.getAllMatch = async (req,res)=>{
     try{
         
@@ -36,7 +35,6 @@ exports.getAllMatch = async (req,res)=>{
         });
     }
 }
-
 exports.getMatchID = async (req,res)=>{
     try{
         const id = req.params.id;
@@ -50,7 +48,6 @@ exports.getMatchID = async (req,res)=>{
         });
     }
 }
-
 exports.updateMatch = async (req, res) => {
     try {
         const id= req.params.id;
@@ -70,7 +67,6 @@ exports.updateMatch = async (req, res) => {
         });
     }
 };
-
 exports.deleteMatch = async (req, res) => {
     try {
         const id = req.params.id; 
