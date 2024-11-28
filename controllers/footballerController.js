@@ -1,4 +1,5 @@
 const Footballer = require('../Model/footballer');
+const mongoose = require('mongoose');
 
 // Get all footballers
 exports.getAllFootballers = async (req, res) => {
@@ -7,7 +8,7 @@ exports.getAllFootballers = async (req, res) => {
     if (!footballers || footballers.length === 0) {
       return res.status(404).json({ error: 'No footballers found' });
     }
-    res.status(200).json(footballers);
+    res.status(200).json({ message: 'Footballers retrieved successfully', data: footballers });
   } catch (err) {
     console.error('Error fetching footballers:', err);
     res.status(500).json({ error: 'Server error' });
@@ -18,16 +19,19 @@ exports.getAllFootballers = async (req, res) => {
 exports.getFootballerById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
+
     const footballer = await Footballer.findById(id);
     if (!footballer) {
       return res.status(404).json({ error: 'Footballer not found' });
     }
-    res.status(200).json(footballer);
+    res.status(200).json({ message: 'Footballer retrieved successfully', data: footballer });
   } catch (err) {
     console.error('Error fetching footballer by ID:', err);
-    if (err instanceof mongoose.Error.CastError) {
-      return res.status(400).json({ error: 'Invalid ID format' });
-    }
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -36,7 +40,6 @@ exports.getFootballerById = async (req, res) => {
 exports.addFootballer = async (req, res) => {
   try {
     const {
-      id,
       firstName,
       lastName,
       position,
@@ -48,13 +51,13 @@ exports.addFootballer = async (req, res) => {
       weight,
       imageUrl,
     } = req.body;
+
     // Validate required fields
-    if (!id || !firstName || !lastName || !position || !club || !country || !dateOfBirth || !height || !weight) {
-      return res.status(400).json({ error: 'All fields are required' });
+    if (!firstName || !lastName || !position || !age || !club || !country || !dateOfBirth || !height || !weight) {
+      return res.status(400).json({ error: 'All fields except imageUrl are required' });
     }
 
     const newFootballer = new Footballer({
-      id,
       firstName,
       lastName,
       position,
@@ -73,23 +76,32 @@ exports.addFootballer = async (req, res) => {
     res.status(500).json({ error: 'Failed to add footballer', details: err.message });
   }
 };
+
 // Update a footballer
 exports.updateFootballer = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
+
     const updatedData = req.body;
-    const footballer = await Footballer.findOneAndUpdate(
-      { id: Number(id) },
+    const footballer = await Footballer.findByIdAndUpdate(
+      id,
       updatedData,
       { new: true, runValidators: true }
     );
+
     if (!footballer) {
       return res.status(404).json({ error: 'Footballer not found' });
     }
+
     res.status(200).json({ message: 'Footballer updated successfully', data: footballer });
   } catch (err) {
     console.error('Error updating footballer:', err);
-    res.status(500).json({ error: 'Server error', details: err.message });
+    res.status(500).json({ error: 'Failed to update footballer', details: err.message });
   }
 };
 
@@ -98,7 +110,12 @@ exports.deleteFootballer = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const footballer = await Footballer.findOneAndDelete({ id: Number(id) });
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
+
+    const footballer = await Footballer.findByIdAndDelete(id);
 
     if (!footballer) {
       return res.status(404).json({ error: 'Footballer not found' });
@@ -107,6 +124,6 @@ exports.deleteFootballer = async (req, res) => {
     res.status(200).json({ message: 'Footballer deleted successfully' });
   } catch (err) {
     console.error('Error deleting footballer:', err);
-    res.status(500).json({ error: 'Server error', details: err.message });
+    res.status(500).json({ error: 'Failed to delete footballer', details: err.message });
   }
 };

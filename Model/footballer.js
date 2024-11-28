@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 
 // Define the footballer schema
 const footballerSchema = new mongoose.Schema({
-  id: { type: Number, required: true,unique:true },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   position: { type: String, required: true },
