@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { getPlayersByTeam } = require('../controllers/fillterFootballer');
 const { 
   getAllFootballers, 
   getFootballerById, 
@@ -16,5 +17,5 @@ router.get('/footballers/:id', authMiddleware, getFootballerById);
 router.post('/footballers', authMiddleware, roleMiddleware('admin'), addFootballer);
 router.put('/footballers/:id', authMiddleware, roleMiddleware('admin'), updateFootballer);
 router.delete('/footballers/:id', authMiddleware, roleMiddleware('admin'), deleteFootballer);
-
+router.get('/team/:team', getPlayersByTeam);
 module.exports = router;
