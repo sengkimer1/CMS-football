@@ -40,6 +40,7 @@ exports.addFootballer = async (req, res) => {
       lastName,
       position,
       age,
+      team,
       club,
       country,
       dateOfBirth,
@@ -48,7 +49,7 @@ exports.addFootballer = async (req, res) => {
       imageUrl,
     } = req.body;
     // Validate required fields
-    if (!firstName || !lastName || !position ||!age || !club || !country || !dateOfBirth || !height || !weight) {
+    if (!firstName || !lastName || !position ||!age ||!team|| !club || !country || !dateOfBirth || !height || !weight) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
@@ -57,6 +58,7 @@ exports.addFootballer = async (req, res) => {
       lastName,
       position,
       age,
+      team,
       club,
       country,
       dateOfBirth,
