@@ -4,18 +4,18 @@ const mongoose = require("mongoose");
 const matchSchema = new mongoose.Schema(
 
     {
-        id:{
-            type:Number,
-            request:[true],
-            unique:[true]
+        id: {
+            type: Number,
+            request: [true],
+            unique: [true]
         },
         team_A: {
-            type: String,
-            required: [true]
+            name: { type: String, required: true },
+            logo:{type: String, required: true }
         },
         team_B: {
-            type: String,
-            required: [true]
+            name: {type: String, required: true},
+            logo:{type: String, required: true }
         },
         match_date: {
             type: Date,
@@ -25,6 +25,11 @@ const matchSchema = new mongoose.Schema(
             type: String,
             default: true
         },
+        seats: {
+            type: Number,
+            default: 0, 
+            required: true,
+          },
         referee: {
             type: String,
             default: "Not assigned",
@@ -40,7 +45,7 @@ const matchSchema = new mongoose.Schema(
             min: [0, "Score cannot be negative"],
         },
     },
-    { 
+    {
         timestamps: true,
     }
 );
