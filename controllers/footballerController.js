@@ -1,4 +1,5 @@
 const Footballer = require('../Model/footballer');
+const mongoose = require('mongoose'); 
 
 // Get all footballers
 exports.getAllFootballers = async (req, res) => {
@@ -18,6 +19,11 @@ exports.getAllFootballers = async (req, res) => {
 exports.getFootballerById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
+
     const footballer = await Footballer.findById(id);
     if (!footballer) {
       return res.status(404).json({ error: 'Footballer not found' });
@@ -25,9 +31,6 @@ exports.getFootballerById = async (req, res) => {
     res.status(200).json(footballer);
   } catch (err) {
     console.error('Error fetching footballer by ID:', err);
-    if (err instanceof mongoose.Error.CastError) {
-      return res.status(400).json({ error: 'Invalid ID format' });
-    }
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -48,8 +51,17 @@ exports.addFootballer = async (req, res) => {
       weight,
       imageUrl,
     } = req.body;
-    // Validate required fields
-    if (!firstName || !lastName || !position ||!age ||!team|| !club || !country || !dateOfBirth || !height || !weight) {
+
+    const validTeams = ["U13", "U16", "U19", "Senior"];
+
+    // Validate team name
+    if (!validTeams.includes(team)) {
+      return res.status(400).json({
+        error: `Invalid team name: ${team}. Valid options are ${validTeams.join(", ")}.`,
+      });
+    }
+
+    if (!firstName || !lastName || !position || !age || !team || !club || !country || !dateOfBirth || !height || !weight) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
@@ -66,6 +78,7 @@ exports.addFootballer = async (req, res) => {
       weight,
       imageUrl,
     });
+
     await newFootballer.save();
     res.status(201).json({ message: 'Footballer added successfully', data: newFootballer });
   } catch (err) {
@@ -73,16 +86,23 @@ exports.addFootballer = async (req, res) => {
     res.status(500).json({ error: 'Failed to add footballer', details: err.message });
   }
 };
+
 // Update a footballer
 exports.updateFootballer = async (req, res) => {
   try {
     const { id } = req.params;
     const updatedData = req.body;
-    const footballer = await Footballer.findOneAndUpdate(
-      { id: Number(id) },
-      updatedData,
-      { new: true, runValidators: true }
-    );
+
+    if (updatedData.team) {
+      const validTeams = ["U13", "U16", "U19", "Senior"];
+      if (!validTeams.includes(updatedData.team)) {
+        return res.status(400).json({
+          error: `Invalid team name: ${updatedData.team}. Valid options are ${validTeams.join(", ")}.`,
+        });
+      }
+    }
+
+    const footballer = await Footballer.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
     if (!footballer) {
       return res.status(404).json({ error: 'Footballer not found' });
     }
@@ -97,8 +117,7 @@ exports.updateFootballer = async (req, res) => {
 exports.deleteFootballer = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const footballer = await Footballer.findOneAndDelete({ id: Number(id) });
+    const footballer = await Footballer.findByIdAndDelete(id);
 
     if (!footballer) {
       return res.status(404).json({ error: 'Footballer not found' });
@@ -110,3 +129,5 @@ exports.deleteFootballer = async (req, res) => {
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 };
+
+

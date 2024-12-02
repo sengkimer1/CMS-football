@@ -4,19 +4,19 @@ const mongoose = require('mongoose');
 // Create a new ticket
 exports.createTicketController = async (req, res) => {
   try {
-    const { userId, id, matchId, seats } = req.body;
+    const { userId, matchId, seats, price } = req.body;
 
-    if (!userId || !id || !matchId || !seats) {
+    if (!userId || !matchId || !seats || !price) {
       return res.status(400).json({
-        error: 'userId, id, matchId, and seats are required',
+        error: 'userId, matchId, seats, and price are required',
       });
     }
 
     const ticket = new Ticket({
       userId,
-      id,
       matchId,
       seats,
+      price,  // Added price field to store ticket price
       status: 'booked',
     });
 
@@ -38,13 +38,13 @@ exports.createTicketController = async (req, res) => {
 // Get a ticket by ID
 exports.getTicketById = async (req, res) => {
   try {
-    const ticketId = parseInt(req.params.id, 10);
+    const ticketId = req.params.id;
 
-    if (isNaN(ticketId)) {
+    if (!mongoose.Types.ObjectId.isValid(ticketId)) {
       return res.status(400).json({ error: 'Invalid ticket ID format' });
     }
 
-    const ticket = await Ticket.findOne({ id: ticketId });
+    const ticket = await Ticket.findById(ticketId);
 
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
@@ -63,21 +63,21 @@ exports.getTicketById = async (req, res) => {
 // Update ticket booking details
 exports.updateTicketBooking = async (req, res) => {
   try {
-    const ticketId = parseInt(req.params.id, 10);
+    const ticketId = req.params.id;
 
-    if (isNaN(ticketId)) {
+    if (!mongoose.Types.ObjectId.isValid(ticketId)) {
       return res.status(400).json({ error: 'Invalid ticket ID format' });
     }
 
-    const { userId, matchId, seats, status } = req.body;
+    const { userId, matchId, seats, status, price } = req.body;
 
-    if (!userId && !matchId && !seats && !status) {
+    if (!userId && !matchId && !seats && !status && !price) {
       return res.status(400).json({
-        error: 'At least one of userId, matchId, seats, or status must be provided to update the ticket',
+        error: 'At least one of userId, matchId, seats, status, or price must be provided to update the ticket',
       });
     }
 
-    const ticket = await Ticket.findOne({ id: ticketId });
+    const ticket = await Ticket.findById(ticketId);
 
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
@@ -88,6 +88,7 @@ exports.updateTicketBooking = async (req, res) => {
     if (matchId) ticket.matchId = matchId;
     if (seats) ticket.seats = seats;
     if (status) ticket.status = status;
+    if (price) ticket.price = price;
 
     await ticket.save();
 
@@ -103,13 +104,12 @@ exports.updateTicketBooking = async (req, res) => {
     });
   }
 };
+
 // Get all tickets
 exports.getAllTickets = async (req, res) => {
   try {
-    // Fetch all tickets from the database
     const tickets = await Ticket.find();
 
-    // Check if no tickets are found
     if (tickets.length === 0) {
       return res.status(404).json({ message: 'No tickets found' });
     }
@@ -124,20 +124,18 @@ exports.getAllTickets = async (req, res) => {
     });
   }
 };
+
 // Delete a ticket booking
 exports.deleteTicketById = async (req, res) => {
   try {
     const ticketId = req.params.id;
 
-    // Validate that the ticketId is a valid MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(ticketId)) {
       return res.status(400).json({ error: 'Invalid ticket ID format' });
     }
 
-    // Find and delete the ticket
     const deletedTicket = await Ticket.findByIdAndDelete(ticketId);
 
-    // If no ticket is found to delete
     if (!deletedTicket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
@@ -152,6 +150,87 @@ exports.deleteTicketById = async (req, res) => {
     res.status(500).json({
       error: 'Failed to delete ticket',
       details: error.message,
+    });
+  }
+};
+
+// Get tickets sold per match
+exports.getTicketsSoldPerMatch = async (req, res) => {
+  try {
+    const matchId = req.params.matchId;
+
+    const result = await Ticket.aggregate([
+      { $match: { matchId: matchId } }, 
+      { $group: { _id: "$matchId", totalSeatsSold: { $sum: "$seats" } } }, 
+    ]);
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: `No tickets found for match ${matchId}` });
+    }
+
+    res.status(200).json({
+      matchId,
+      totalSeatsSold: result[0].totalSeatsSold,
+    });
+  } catch (error) {
+    console.error('Error fetching tickets sold per match:', error.message);
+    res.status(500).json({
+      message: 'Failed to get tickets sold per match',
+      error: error.message,
+    });
+  }
+};
+
+// Get total sales per match
+exports.getTotalSalesPerMatch = async (req, res) => {
+  try {
+    const matchId = req.params.matchId;
+
+    const result = await Ticket.aggregate([
+      { $match: { matchId: matchId } }, 
+      { 
+        $group: { 
+          _id: "$matchId", 
+          totalSales: { $sum: { $multiply: ["$seats", "$price"] } } 
+        } 
+      },
+    ]);
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: `No tickets found for match ${matchId}` });
+    }
+
+    res.status(200).json({
+      matchId,
+      totalSales: result[0].totalSales,
+    });
+  } catch (error) {
+    console.error('Error fetching total sales per match:', error.message);
+    res.status(500).json({
+      message: 'Failed to get total sales per match',
+      error: error.message,
+    });
+  }
+};
+
+// Get number of canceled bookings
+exports.getCanceledBookingsCount = async (req, res) => {
+  try {
+    const matchId = req.params.matchId;
+
+    const matchFilter = matchId ? { matchId: matchId, status: 'canceled' } : { status: 'canceled' };
+
+    const canceledBookings = await Ticket.countDocuments(matchFilter);
+
+    res.status(200).json({
+      matchId: matchId || "all",
+      canceledBookings: canceledBookings,
+    });
+  } catch (error) {
+    console.error('Error fetching canceled bookings:', error.message);
+    res.status(500).json({
+      message: 'Failed to fetch canceled bookings',
+      error: error.message,
     });
   }
 };
