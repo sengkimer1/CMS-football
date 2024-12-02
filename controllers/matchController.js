@@ -1,15 +1,25 @@
 const Match = require("../Model/match");
-exports.createMatch = async (req, res) => {
+const Ticket = require("../Model/ticket"); // Assuming Ticket model is defined elsewhere
+
+// Create a new match
+exports.createMatch = async (req, res) => {  
     try {
-    const { team_A, team_B, match_date, location, referee } = req.body;
-    const newMatch = new Match({
-        team_A,
-        team_B,
-        match_date: new Date(match_date),
-        location: location || "To be determined",
-        referee: referee || "Not assigned", 
-    });
-    const savedMatch = await newMatch.save();
+        const { team_A, team_B, match_date, location, referee } = req.body;
+
+        // Validation
+        if (!team_A || !team_B || !match_date) {
+            return res.status(400).json({ message: 'team_A, team_B, and match_date are required.' });
+        }
+
+        const newMatch = new Match({
+            team_A,
+            team_B,
+            match_date: new Date(match_date),
+            location: location || "To be determined",
+            referee: referee || "Not assigned", 
+        });
+        
+        const savedMatch = await newMatch.save();
         return res.status(201).json({
             message: "Match created successfully!",
             match: savedMatch,
@@ -22,43 +32,62 @@ exports.createMatch = async (req, res) => {
         });
     }
 };
-exports.getAllMatch = async (req,res)=>{
-    try{
-        
+
+// Get all matches
+exports.getAllMatch = async (req, res) => {
+    try {
         const getMatch = await Match.find();
-        return res.status(200).json({message: "get all match successfully", getMatch});
-    }  catch (error) {
+        return res.status(200).json({ message: "Fetched all matches successfully", getMatch });
+    } catch (error) {
         console.error(error);
         return res.status(500).json({
-            message: "Internal server error ",
+            message: "Internal server error",
             error: error.message,
         });
     }
-}
-exports.getMatchID = async (req,res)=>{
-    try{
+};
+
+// Get a match by ID
+exports.getMatchID = async (req, res) => {
+    try {
         const id = req.params.id;
         const getMatch = await Match.findById(id);
-        return res.status(200).json({message: "get id match successfully", getMatch});
-    }  catch (error) {
+        
+        if (!getMatch) {
+            return res.status(404).json({ message: "Match not found" });
+        }
+
+        return res.status(200).json({ message: "Fetched match by ID successfully", getMatch });
+    } catch (error) {
         console.error(error);
         return res.status(500).json({
-            message: "Internal server error ",
+            message: "Internal server error",
             error: error.message,
         });
     }
-}
+};
+
+// Update match details
 exports.updateMatch = async (req, res) => {
     try {
-        const id= req.params.id;
+        const id = req.params.id;
         const update = req.body; 
-        // Find the match by ID and update it
+        
+        // Validation: Ensure at least one field to update exists
+        if (Object.keys(update).length === 0) {
+            return res.status(400).json({ message: 'No fields to update.' });
+        }
+
         const updatedMatch = await Match.findByIdAndUpdate(
             id, 
-            update, {new: true, runValidators: true}
+            update, { new: true, runValidators: true }
         );
-        return res.status(200).json({message:'update successfully',updatedMatch})
 
+        if (!updatedMatch) {
+            return res.status(404).json({ message: 'Match not found.' });
+        }
+
+        return res.status(200).json({ message: 'Update successful', updatedMatch });
     } catch (error) {
         console.error("Error updating match:", error);
         return res.status(500).json({
@@ -67,19 +96,57 @@ exports.updateMatch = async (req, res) => {
         });
     }
 };
+
+// Delete a match
 exports.deleteMatch = async (req, res) => {
     try {
-        const id = req.params.id; 
-        // Find the match by ID and update it
+        const id = req.params.id;
+        
         const deleteMatch = await Match.findByIdAndDelete(id);
-        return res.status(200).json({message:'delete successfully',deleteMatch})
+        
+        if (!deleteMatch) {
+            return res.status(404).json({ message: 'Match not found.' });
+        }
 
+        return res.status(200).json({ message: 'Delete successful', deleteMatch });
     } catch (error) {
-        console.error("Error delete match:", error);
+        console.error("Error deleting match:", error);
         return res.status(500).json({
-            message: "An error occurred while delete the match.",
+            message: "An error occurred while deleting the match.",
             error: error.message,
         });
     }
 };
 
+// Get the available seats for a match
+exports.getAvailableSeats = async (req, res) => {
+  try {
+    const matchId = req.params.matchId;
+
+    const totalSeats = 100; // Total seats for the match
+
+    const bookedSeats = await Ticket.aggregate([
+      { $match: { matchId: matchId, status: { $ne: 'canceled' } } },
+      { $group: { _id: "$matchId", totalSeatsBooked: { $sum: "$seats" } } }
+    ]);
+
+    const totalSeatsBooked = bookedSeats.length > 0 ? bookedSeats[0].totalSeatsBooked : 0;
+
+    // Calculate available seats
+    const availableSeats = totalSeats - totalSeatsBooked;
+
+    // Respond with the available seats for the match
+    res.status(200).json({
+      matchId,
+      totalSeats,
+      totalSeatsBooked,
+      availableSeats,
+    });
+  } catch (error) {
+    console.error('Error fetching available seats:', error.message);
+    res.status(500).json({
+      message: 'Failed to fetch available seats',
+      error: error.message,
+    });
+  }
+};
