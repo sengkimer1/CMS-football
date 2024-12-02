@@ -3,10 +3,8 @@ const mongoose = require('mongoose');
 
 const ticketSchema = new mongoose.Schema({
     userId: { type: String, required: true },
-    id: { type: Number, required: true, unique: true },  // Custom 'id' field
     matchId: { type: String, required: true },
-  seats: { type: Number, required: true },
-  price: { type: Number, required: true }, // Add price as a required field
+  price: { type: Number, required: true }, 
   status: { type: String, enum: ['booked', 'canceled'], default: 'booked' }
 });
 

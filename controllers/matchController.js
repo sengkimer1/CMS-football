@@ -4,11 +4,11 @@ const Ticket = require("../Model/ticket"); // Assuming Ticket model is defined e
 // Create a new match
 exports.createMatch = async (req, res) => {  
     try {
-        const { team_A, team_B, match_date, location, referee } = req.body;
+        const { team_A, team_B, match_date, location, seats, referee } = req.body;
 
         // Validation
-        if (!team_A || !team_B || !match_date) {
-            return res.status(400).json({ message: 'team_A, team_B, and match_date are required.' });
+        if (!team_A || !team_B || !match_date || seats === undefined) {
+            return res.status(400).json({ message: 'team_A, team_B, match_date, and seats are required.' });
         }
 
         const newMatch = new Match({
@@ -16,7 +16,9 @@ exports.createMatch = async (req, res) => {
             team_B,
             match_date: new Date(match_date),
             location: location || "To be determined",
-            referee: referee || "Not assigned", 
+            seats, 
+            referee: referee || "Not assigned",
+          
         });
         
         const savedMatch = await newMatch.save();
@@ -123,7 +125,13 @@ exports.getAvailableSeats = async (req, res) => {
   try {
     const matchId = req.params.matchId;
 
-    const totalSeats = 100; // Total seats for the match
+    // Find the match by matchId and get the total seats
+    const match = await Match.findById(matchId);
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    const totalSeats = match.seats; // Use the seats value from the match document
 
     const bookedSeats = await Ticket.aggregate([
       { $match: { matchId: matchId, status: { $ne: 'canceled' } } },

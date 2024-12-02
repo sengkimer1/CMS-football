@@ -4,9 +4,9 @@ const mongoose = require('mongoose');
 // Create a new ticket
 exports.createTicketController = async (req, res) => {
   try {
-    const { userId, matchId, seats, price } = req.body;
+    const { userId, matchId,price } = req.body;
 
-    if (!userId || !matchId || !seats || !price) {
+    if (!userId || !matchId || !price) {
       return res.status(400).json({
         error: 'userId, matchId, seats, and price are required',
       });
@@ -15,8 +15,7 @@ exports.createTicketController = async (req, res) => {
     const ticket = new Ticket({
       userId,
       matchId,
-      seats,
-      price,  // Added price field to store ticket price
+      price,  
       status: 'booked',
     });
 
@@ -69,7 +68,7 @@ exports.updateTicketBooking = async (req, res) => {
       return res.status(400).json({ error: 'Invalid ticket ID format' });
     }
 
-    const { userId, matchId, seats, status, price } = req.body;
+    const { userId, matchId, status, price } = req.body;
 
     if (!userId && !matchId && !seats && !status && !price) {
       return res.status(400).json({
@@ -86,7 +85,6 @@ exports.updateTicketBooking = async (req, res) => {
     // Update only the provided fields
     if (userId) ticket.userId = userId;
     if (matchId) ticket.matchId = matchId;
-    if (seats) ticket.seats = seats;
     if (status) ticket.status = status;
     if (price) ticket.price = price;
 
