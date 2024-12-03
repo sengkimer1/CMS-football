@@ -6,8 +6,8 @@ const BookingTicketSchema = new mongoose.Schema({
     ref: 'Match', 
     required: true,
   },
-  ticketId: {
-    type: String,
+  ticket_id: {
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
     unique: true, 
   },
@@ -15,11 +15,8 @@ const BookingTicketSchema = new mongoose.Schema({
     type: Number, 
     required: true,  
   },
-  status: {
-    type: String,
-    enum: ['booked', 'pending', 'cancelled'],  
-    default: 'pending',
-  },
+  status: { type: String, enum: ['booked', 'canceled'], default: 'booked' },
+
   userId: {
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User',  

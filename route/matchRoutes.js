@@ -5,8 +5,8 @@ const {
     getMatchID,
     updateMatch,
     deleteMatch,
-    getAvailableSeats
 } = require('../controllers/matchController');
+const {getAvailableSeats} = require('../controllers/AnalyticsController');
 const matchRouter = express.Router();
 const authMiddleware = require('../Modelware/authmodelware');
 const roleMiddleware = require('../Modelware/roleMiddleware');
@@ -16,6 +16,6 @@ matchRouter.get('/matchs',getAllMatch)
 matchRouter.get('/matchs/:id',getMatchID)
 matchRouter.put('/matchs/:id',authMiddleware,roleMiddleware('admin'),updateMatch)
 matchRouter.delete('/matchs/:id',authMiddleware,roleMiddleware('admin'),deleteMatch)
-matchRouter.get('/matchs/seats/:id',getAvailableSeats)
 
+matchRouter.get('/matches/:matchId', getAvailableSeats);
 module.exports = matchRouter;

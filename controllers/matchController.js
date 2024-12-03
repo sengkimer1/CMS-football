@@ -1,39 +1,41 @@
 const Match = require("../Model/match");
 const Ticket = require("../Model/ticket"); // Assuming Ticket model is defined elsewhere
 
-// Create a new match
-exports.createMatch = async (req, res) => {  
-    try {
-        const { team_A, team_B, match_date, location, seats, referee } = req.body;
+exports.createMatch = async (req, res) => {
+  try {
+    const { team_A, team_B, match_date, location, seats, venue } = req.body;
 
-        // Validation
-        if (!team_A || !team_B || !match_date || seats === undefined) {
-            return res.status(400).json({ message: 'team_A, team_B, match_date, and seats are required.' });
-        }
-
-        const newMatch = new Match({
-            team_A,
-            team_B,
-            match_date: new Date(match_date),
-            location: location || "To be determined",
-            seats, 
-            referee: referee || "Not assigned",
-          
-        });
-        
-        const savedMatch = await newMatch.save();
-        return res.status(201).json({
-            message: "Match created successfully!",
-            match: savedMatch,
-        });
-    } catch (error) {
-        console.error("Error creating match:", error);
-        return res.status(500).json({
-            message: "An error occurred while creating the match.",
-            error: error.message,
-        });
+    // Validation
+    if (!team_A || !team_B || !match_date || seats === undefined) {
+      return res.status(400).json({ message: 'team_A, team_B, match_date, and seats are required.' });
     }
+
+    const createdBy = req.user._id;  // Ensure req.user._id is populated
+
+    const newMatch = new Match({
+      team_A,
+      team_B,
+      match_date: new Date(match_date),
+      location: location || "To be determined",
+      seats, 
+      venue: venue || "Not assigned",  
+      createdBy,
+    });
+
+    const savedMatch = await newMatch.save();
+    return res.status(201).json({
+      message: "Match created successfully!",
+      match: savedMatch,
+    });
+  } catch (error) {
+    console.error("Error creating match:", error);
+    return res.status(500).json({
+      message: "An error occurred while creating the match.",
+      error: error.message,
+    });
+  }
 };
+
 
 // Get all matches
 exports.getAllMatch = async (req, res) => {
@@ -120,41 +122,41 @@ exports.deleteMatch = async (req, res) => {
     }
 };
 
-// Get the available seats for a match
-exports.getAvailableSeats = async (req, res) => {
-  try {
-    const matchId = req.params.matchId;
+// // Get the available seats for a match
+// exports.getAvailableSeats = async (req, res) => {
+//   try {
+//     const matchId = req.params.matchId;
 
-    // Find the match by matchId and get the total seats
-    const match = await Match.findById(matchId);
-    if (!match) {
-      return res.status(404).json({ message: 'Match not found' });
-    }
+//     // Find the match by matchId and get the total seats
+//     const match = await Match.findById(matchId);
+//     if (!match) {
+//       return res.status(404).json({ message: 'Match not found' });
+//     }
 
-    const totalSeats = match.seats; // Use the seats value from the match document
+//     const totalSeats = match.seats; // Use the seats value from the match document
 
-    const bookedSeats = await Ticket.aggregate([
-      { $match: { matchId: matchId, status: { $ne: 'canceled' } } },
-      { $group: { _id: "$matchId", totalSeatsBooked: { $sum: "$seats" } } }
-    ]);
+//     const bookedSeats = await Ticket.aggregate([
+//       { $match: { matchId: matchId, status: { $ne: 'canceled' } } },
+//       { $group: { _id: "$matchId", totalSeatsBooked: { $sum: "$seats" } } }
+//     ]);
 
-    const totalSeatsBooked = bookedSeats.length > 0 ? bookedSeats[0].totalSeatsBooked : 0;
+//     const totalSeatsBooked = bookedSeats.length > 0 ? bookedSeats[0].totalSeatsBooked : 0;
 
-    // Calculate available seats
-    const availableSeats = totalSeats - totalSeatsBooked;
+//     // Calculate available seats
+//     const availableSeats = totalSeats - totalSeatsBooked;
 
-    // Respond with the available seats for the match
-    res.status(200).json({
-      matchId,
-      totalSeats,
-      totalSeatsBooked,
-      availableSeats,
-    });
-  } catch (error) {
-    console.error('Error fetching available seats:', error.message);
-    res.status(500).json({
-      message: 'Failed to fetch available seats',
-      error: error.message,
-    });
-  }
-};
+//     // Respond with the available seats for the match
+//     res.status(200).json({
+//       matchId,
+//       totalSeats,
+//       totalSeatsBooked,
+//       availableSeats,
+//     });
+//   } catch (error) {
+//     console.error('Error fetching available seats:', error.message);
+//     res.status(500).json({
+//       message: 'Failed to fetch available seats',
+//       error: error.message,
+//     });
+//   }
+// };

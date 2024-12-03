@@ -50,6 +50,7 @@ exports.addFootballer = async (req, res) => {
       height,
       weight,
       imageUrl,
+      createdBy, // Added validation for createdBy as it's required in the schema
     } = req.body;
 
     const validTeams = ["U13", "U16", "U19", "Senior"];
@@ -61,8 +62,26 @@ exports.addFootballer = async (req, res) => {
       });
     }
 
-    if (!firstName || !lastName || !position || !age || !team || !club || !country || !dateOfBirth || !height || !weight) {
-      return res.status(400).json({ error: 'All fields are required' });
+    // Validate required fields
+    if (
+      !firstName ||
+      !lastName ||
+      !position ||
+      !age ||
+      !team ||
+      !club ||
+      !country ||
+      !dateOfBirth ||
+      !height ||
+      !weight ||
+      !createdBy // Ensure createdBy is provided
+    ) {
+      return res.status(400).json({ error: "All fields are required, including createdBy." });
+    }
+
+    // Validate createdBy as a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(createdBy)) {
+      return res.status(400).json({ error: "Invalid createdBy user ID." });
     }
 
     const newFootballer = new Footballer({
@@ -77,13 +96,20 @@ exports.addFootballer = async (req, res) => {
       height,
       weight,
       imageUrl,
+      createdBy,
     });
 
     await newFootballer.save();
-    res.status(201).json({ message: 'Footballer added successfully', data: newFootballer });
+    res.status(201).json({
+      message: "Footballer added successfully",
+      data: newFootballer,
+    });
   } catch (err) {
-    console.error('Error adding footballer:', err);
-    res.status(500).json({ error: 'Failed to add footballer', details: err.message });
+    console.error("Error adding footballer:", err);
+    res.status(500).json({
+      error: "Failed to add footballer",
+      details: err.message,
+    });
   }
 };
 

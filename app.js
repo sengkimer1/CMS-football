@@ -4,6 +4,7 @@ const footballerRoutes = require('./route/footballerRoutes');
 const userRoutes = require('./route/userRoutes');
 const ticketRoutes = require('./route/ticketRoutes');
 const matchRoutes = require('./route/matchRoutes');
+const booking = require('./route/booking')
 const dotenv = require('dotenv');
 
 // Load environment variables
@@ -27,9 +28,9 @@ mongoose.connect(process.env.MONGO_URI)
 // API Routes
 app.use('/api', footballerRoutes); 
 app.use('/api/users', userRoutes); 
-app.use('/api/tickets', ticketRoutes);  // Ticket routes
+app.use('/api', ticketRoutes);  // Ticket routes
 app.use('/api', matchRoutes);
-
+app.use('/api',booking)
 // Start the Server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
