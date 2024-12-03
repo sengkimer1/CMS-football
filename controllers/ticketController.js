@@ -1,26 +1,34 @@
 const Ticket = require('../Model/ticket');
 const mongoose = require('mongoose');
 
+
 // Create a new ticket
 exports.createTicketController = async (req, res) => {
   try {
-    const { userId, matchId,price } = req.body;
-
-    if (!userId || !matchId || !price) {
+    const { userId, matchId, price,available} = req.body;
+    if (!userId || !matchId || !price||!available) {
       return res.status(400).json({
-        error: 'userId, matchId, seats, and price are required',
+        error: 'userId, matchId, and price are required',
       });
     }
 
+    const createdBy = req.user.id; 
+    console.log(createdBy)
+    if (!createdBy) {
+      return res.status(401).json({ error: 'Unauthorized, user must be logged in' });
+    }
+
+    // Create the new ticket
     const ticket = new Ticket({
       userId,
       matchId,
-      price,  
+      price,
+      available,
       status: 'booked',
+      createdBy, 
+      updatedBy: createdBy, 
     });
-
     await ticket.save();
-
     res.status(201).json({
       message: 'Ticket created successfully',
       ticket,
@@ -33,7 +41,6 @@ exports.createTicketController = async (req, res) => {
     });
   }
 };
-
 // Get a ticket by ID
 exports.getTicketById = async (req, res) => {
   try {
@@ -48,7 +55,6 @@ exports.getTicketById = async (req, res) => {
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
-
     res.status(200).json(ticket);
   } catch (error) {
     console.error('Error fetching ticket:', error.message);
@@ -58,7 +64,6 @@ exports.getTicketById = async (req, res) => {
     });
   }
 };
-
 // Update ticket booking details
 exports.updateTicketBooking = async (req, res) => {
   try {
@@ -81,7 +86,6 @@ exports.updateTicketBooking = async (req, res) => {
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
-
     // Update only the provided fields
     if (userId) ticket.userId = userId;
     if (matchId) ticket.matchId = matchId;
@@ -152,83 +156,3 @@ exports.deleteTicketById = async (req, res) => {
   }
 };
 
-// Get tickets sold per match
-exports.getTicketsSoldPerMatch = async (req, res) => {
-  try {
-    const matchId = req.params.matchId;
-
-    const result = await Ticket.aggregate([
-      { $match: { matchId: matchId } }, 
-      { $group: { _id: "$matchId", totalSeatsSold: { $sum: "$seats" } } }, 
-    ]);
-
-    if (result.length === 0) {
-      return res.status(404).json({ message: `No tickets found for match ${matchId}` });
-    }
-
-    res.status(200).json({
-      matchId,
-      totalSeatsSold: result[0].totalSeatsSold,
-    });
-  } catch (error) {
-    console.error('Error fetching tickets sold per match:', error.message);
-    res.status(500).json({
-      message: 'Failed to get tickets sold per match',
-      error: error.message,
-    });
-  }
-};
-
-// Get total sales per match
-exports.getTotalSalesPerMatch = async (req, res) => {
-  try {
-    const matchId = req.params.matchId;
-
-    const result = await Ticket.aggregate([
-      { $match: { matchId: matchId } }, 
-      { 
-        $group: { 
-          _id: "$matchId", 
-          totalSales: { $sum: { $multiply: ["$seats", "$price"] } } 
-        } 
-      },
-    ]);
-
-    if (result.length === 0) {
-      return res.status(404).json({ message: `No tickets found for match ${matchId}` });
-    }
-
-    res.status(200).json({
-      matchId,
-      totalSales: result[0].totalSales,
-    });
-  } catch (error) {
-    console.error('Error fetching total sales per match:', error.message);
-    res.status(500).json({
-      message: 'Failed to get total sales per match',
-      error: error.message,
-    });
-  }
-};
-
-// Get number of canceled bookings
-exports.getCanceledBookingsCount = async (req, res) => {
-  try {
-    const matchId = req.params.matchId;
-
-    const matchFilter = matchId ? { matchId: matchId, status: 'canceled' } : { status: 'canceled' };
-
-    const canceledBookings = await Ticket.countDocuments(matchFilter);
-
-    res.status(200).json({
-      matchId: matchId || "all",
-      canceledBookings: canceledBookings,
-    });
-  } catch (error) {
-    console.error('Error fetching canceled bookings:', error.message);
-    res.status(500).json({
-      message: 'Failed to fetch canceled bookings',
-      error: error.message,
-    });
-  }
-};
